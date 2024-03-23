@@ -1,3 +1,4 @@
+import errno
 import click
 import dumper
 import haggis.logs
@@ -120,20 +121,21 @@ def logging_init(return_logger=False):
         'critical': logging.CRITICAL,
         }
 
-    if return_logger:
+    if return_logger is True:
         logger = logging.getLogger()
         return [logger, log_levels]
     else:
         return log_levels
 
 
-def open_file(filename, mode='r', newline='', encoding='utf-8'):
+def open_file(filename, mode='r', newline='', encoding='utf-8', logger=None):
     """
     Opens a file, with some error handling.
     :param encoding: Encoding used by the file
     :param filename: The name of the file to pass to open()
     :param mode: The read write mode to pass to open()
     :param newline: The newline to pass to open()
+    :param logger: Optional instance of the logging module
     :return: The file handle (or it exits if there is an error)
     """
     try:
@@ -142,13 +144,26 @@ def open_file(filename, mode='r', newline='', encoding='utf-8'):
         else:
             file_handle = open(filename, mode, newline=newline, encoding=encoding)
     except FileNotFoundError:
-        print(f"ERROR: File {filename} not found.  Aborting")
+        error_msg = f"ERROR: File {filename} not found.  Aborting"
+        if logger is not None:
+            logger.critical(error_msg)
+        else:
+            print(error_msg)
         sys.exit(1)
     except OSError as err:
-        print(f"ERROR: Cannot open file (OSerror.errno: {err.errno}; mode: {mode}): ", filename, file=sys.stderr)
+        error_details = errno.errorcode.get(err.errno, "")
+        error_msg = f"ERROR: Cannot open file {filename}; mode: {mode}; (OSerror.errno: {err.errno}; message: {error_details})"
+        if logger is not None:
+            logger.critical(error_msg)
+        else:
+            print(error_msg)
         sys.exit(os.EX_OSFILE)
     except Exception as err:
-        print(f"ERROR: Unexpected error opening {filename}: ", repr(err))
+        error_msg = f"ERROR: Unexpected error opening {filename}: {repr(err)}"
+        if logger is not None:
+            logger.critical(error_msg)
+        else:
+            print(error_msg)
         sys.exit(1)
     return file_handle
 
@@ -165,17 +180,21 @@ def process_cli_using_click(my_cli):
     try:
         click_invoke_rc = my_cli(standalone_mode=False)
     except click.exceptions.NoSuchOption as err:
-        print(f"{err}")
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print(f"Invalid option detected:")
+        print(f"Type: {exc_type}; Value: {exc_value}; Traceback: {exc_traceback}")
         print(f"Try running the program with -h or --help.")
         exit(3)
     except click.exceptions.UsageError as err:
-        print(f"{err}")
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print(f"A usage error occurred:")
+        print(f"Type: {exc_type}; Value: {exc_value}; Traceback: {exc_traceback}")
         print(f"Try running the program with -h or --help.")
         exit(5)
     except:
-        err = sys.exc_info()[0]
+        exc_type, exc_value, exc_traceback = sys.exc_info()
         print(f"An unexpected command line processing error occurred:")
-        print(f"{err}")
+        print(f"Type: {exc_type}; Value: {exc_value}; Traceback: {exc_traceback}")
         print(f"Try running the program with -h or --help.")
         exit(10)
 
