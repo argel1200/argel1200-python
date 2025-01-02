@@ -1,3 +1,2 @@
 click>=7.1.2
 dumper>=0.10.2
-haggis>=0.9.1

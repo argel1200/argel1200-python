@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='argel1200',
-    version='1.0.2',
+    version='1.2.0rc2',
     packages=['argel1200'],
     url='https://github.com/argel1200/argel1200-python',
     license='MIT',
@@ -14,6 +14,5 @@ setup(
     install_requires = [
         "click>=7.1.2",
         "dumper>=0.10.2",
-        "haggis>=0.9.1"
         ],
     )
