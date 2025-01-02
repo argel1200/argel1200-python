@@ -197,11 +197,22 @@ def open_file(filename, mode='r', newline='', encoding='utf-8', logger=None):
     :return: The file handle (or it exits if there is an error)
     """
 
-    # Step 1: Check permissions
+    # Step 1: Check permissions or file existence
     try:
-        access_mode = os.R_OK if 'r' in mode else os.W_OK
-        if not os.access(filename, access_mode):
-            raise PermissionError(f"ERROR: Insufficient permissions to access {filename} in mode {mode}.")
+        if not os.path.exists(filename):
+            # Skip access check if file doesn't exist and mode allows writing
+            if 'w' in mode or 'a' in mode:
+                pass  # File creation is allowed in these modes
+            else:
+                raise FileNotFoundError(f"ERROR: Cannot read ({mode}) {filename} because it does not exist.")
+        else:
+            # Check access if the file exists
+            access_mode = os.R_OK if 'r' in mode else os.W_OK
+            if not os.access(filename, access_mode):
+                raise PermissionError(f"ERROR: Insufficient permissions to access {filename} in mode {mode}.")
+    except FileNotFoundError as err:
+        log_or_print(f"ERROR: {err}", logger=logger, level='critical')
+        sys.exit(1)
     except PermissionError as err:
         log_or_print(f"ERROR: {err}", logger=logger, level='critical')
         sys.exit(1)
