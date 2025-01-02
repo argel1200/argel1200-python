@@ -1,6 +1,4 @@
 import errno
-import click
-import dumper
 import logging
 import os
 import re
@@ -9,12 +7,12 @@ import platform
 import traceback
 
 #
-# Dumper utilities
+# Misc utilities
 #
 
 def get_variable_name(stack_back=-2):
     """
-    Called by dumps()
+    Called by .dumper.dumps()
 
     Pulls the variable names from the function that called this function
 
@@ -58,21 +56,6 @@ def get_variable_name(stack_back=-2):
     return vars_passed_in
 
 
-def dumps(*items):
-    """
-    Front end to dumper.dumps that does some helpful things like
-    finding the variable names and adding them to the output string
-    """
-    dumper.max_depth = 10
-    item_names = get_variable_name(-3)
-    ret_str = ""
-    for idx, item in enumerate(items):
-        if idx > 0:
-            ret_str += f"\n"
-        item_name = item_names[idx]
-        ret_str += f"'{item_name}' = "
-        ret_str += dumper.dumps(item)  # string version of dump
-    return ret_str
 
 
 #
@@ -264,40 +247,3 @@ def open_file(filename, mode='r', newline='', encoding='utf-8', logger=None):
 
     # Return the open file handle
     return file_handle
-
-
-
-# Click (command-line/cli) utilities
-
-def process_cli_using_click(my_cli):
-    """
-    Because we are *not* using click's standalone mode, we need to do our own error handling.
-    This function takes care of that.
-
-    :param my_cli:  The function you defined via click to process the command line arguments
-    """
-    click_invoke_rc = None
-
-    try:
-        click_invoke_rc = my_cli(standalone_mode=False)
-    except click.exceptions.NoSuchOption as err:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        print(f"Invalid option detected:")
-        print(f"Type: {exc_type}; Value: {exc_value}; Traceback: {exc_traceback}")
-        print(f"Try running the program with -h or --help.")
-        exit(3)
-    except click.exceptions.UsageError as err:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        print(f"A usage error occurred:")
-        print(f"Type: {exc_type}; Value: {exc_value}; Traceback: {exc_traceback}")
-        print(f"Try running the program with -h or --help.")
-        exit(5)
-    except:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        print(f"An unexpected command line processing error occurred:")
-        print(f"Type: {exc_type}; Value: {exc_value}; Traceback: {exc_traceback}")
-        print(f"Try running the program with -h or --help.")
-        exit(10)
-
-    if click_invoke_rc == 0:  # Catch if -h, --help, --version, or something unknown was specified
-        exit(1)

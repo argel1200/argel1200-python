@@ -1,6 +1,9 @@
 # argel1200.utilities
 A small collection of utility functions that help reduce boilerplate code.
 
+Version 1.3.0+ now spreads dependencies across files, so you can use e.g., open_file without having click and 
+dumper installed.
+
 ## Dumper Utilties
 
 ### dumps
@@ -42,6 +45,9 @@ Provides basic error handling (required for standalone=False)
 ---
 
 # History
+## 1.3.0
+- Restructured so that people can use e.g. open_file without having to install click or dumper.
+-- Pulling some tricks in utilities/__init__.py to maintain backwards compatibility.
 ## 1.2.0 
 - Added my own add_log_level that supports Python 3.13. Used to use Haggis for this, but it's using old methods that no longer work.
 - Improved open_file to check for permissions and tries to catch if a file is open on Windows
