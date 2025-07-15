@@ -1,4 +1,5 @@
 import click
+import sys
 
 def process_cli_using_click(my_cli):
     """
