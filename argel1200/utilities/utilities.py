@@ -5,6 +5,7 @@ import re
 import sys
 import platform
 import traceback
+from typing import overload, Literal
 
 #
 # Misc utilities
@@ -128,8 +129,12 @@ def add_logging_level(level_name, level_num, method_name=None):
     setattr(logging.getLoggerClass(), lowercase_method_name, log_for_level)
     setattr(logging, lowercase_method_name, log_to_root)
 
+# Attept to help Pyrefly not generate warnings.
+@overload
+def logging_init(return_logger: Literal[True]) -> tuple[logging.Logger, dict[str, int]]: ...
 
-
+@overload
+def logging_init(return_logger: Literal[False] = ...) -> dict[str, int]: ...
 def logging_init(return_logger=False):
     """
     Initializes the logging module with custom levels and a default configuration.
@@ -153,7 +158,7 @@ def logging_init(return_logger=False):
 
     if return_logger is True:
         logger = logging.getLogger()
-        return [logger, log_levels]
+        return (logger, log_levels)
     else:
         return log_levels
 
